@@ -40,15 +40,16 @@ export default function NewReservation() {
         /* The submit button will redirect the user to the dashboard on a specific date.
         the dashboard will have a URL query with the data. It looks like /dashboard?date=2035-12-30, so I'll replicate this here
         the push function 'pushes' the user to whatever path you give.*/
-        history.push(`dashboard?date=${formData.reservation_date}`);
+        history.push(`/dashboard?date=${formData.reservation_date}`);
     }
     
     return (
         <form>
             {/*use the following as a template for your input fields */}
-            <label htmlFor="first_name">First Name:&nbsp;</label>
-            {/*&nbsp; is a fancy way for HTML t place a space. It stands for 'non-breakable space */}
+            <label className="form-label" htmlFor="first_name">First Name:</label>
+           
             <input
+                className="form-control"
                 name="first_name"
                 id="first_name"
                 type="text"
@@ -57,8 +58,9 @@ export default function NewReservation() {
                 value={formData.first_name}
                 required
             />
-            <label htmlFor="last_name">Last Name:&nbsp;</label>
+            <label className="form-label" htmlFor="last_name">Last Name:</label>
             <input
+                className="form-control"
                 name="last_name"
                 id="last_name"
                 type="text"
@@ -66,23 +68,51 @@ export default function NewReservation() {
                 value={formData.last_name}
                 required
             />
-            <label htmlFor="mobile_number">Mobile Number:&nbsp;</label>
+            <label className="form-label" htmlFor="mobile_number">Mobile Number:</label>
             <input
+                className="form-control"
                 name="mobile_number"
                 id="mobile_number"
                 type="number"
                 onChange={handleChange}
-                value="formData.mobile_number"
+                value={formData.mobile_number}
                 required
             />
-            <label htmlFor="reservation_date"></label>
-            {/* 
-        
-        reservation_date: "",
-        reservation_time: "",
-        people: 0, */}
-            <button type="submit" onClick={handleSubmit}>Submit</button>
-            <button type="button" onClick={history.goBack}>Cancel</button>
+            <label className="form-label" htmlFor="reservation_date">Reservation Date</label>
+                <input
+                    className="form-control"
+                    name="reservation_date"
+                    id="reservation_date"
+                    type="date"
+                    onChange={handleChange}
+                    value={formData.reservation_date}
+                    required
+                />
+            
+            <label className="form-label" htmlFor="reservation_time">Reservation Time</label>
+                <input
+                    className="form-control"
+                    name="reservation_time"
+                    id="reservation_time"
+                    type="time"
+                    onChange={handleChange}
+                    value={formData.reservation_time}
+                    required
+            />
+            <label className="form-label" htmlFor="people">Party Size:</label>
+            <input
+                className="form-control"
+                name="people"
+                id="people"
+                type="number"
+                min="1"
+                onChange={handleChange}
+                value={formData.people}
+                required
+            />
+            <br/>
+            <button className="btn btn-primary" type="submit" onClick={handleSubmit}>Submit</button>
+            <button className="btn btn-danger" type="button" onClick={history.goBack}>Cancel</button>
         </form>
     );
 }
