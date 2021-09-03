@@ -10,7 +10,7 @@ import { useHistory } from "react-router-dom";
  *  the date for which the user wants to view reservations.
  * @returns {JSX.Element}
  */
-function Dashboard({ date }) {
+ function Dashboard({ date }) {
   /* Two states are bring stored. the 'reservations' state is esp important because it is holding the response
   from the API
   */
