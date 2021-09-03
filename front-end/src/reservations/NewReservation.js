@@ -57,6 +57,30 @@ export default function NewReservation() {
                 value={formData.first_name}
                 required
             />
+            <label htmlFor="last_name">Last Name:&nbsp;</label>
+            <input
+                name="last_name"
+                id="last_name"
+                type="text"
+                onChange={handleChange}
+                value={formData.last_name}
+                required
+            />
+            <label htmlFor="mobile_number">Mobile Number:&nbsp;</label>
+            <input
+                name="mobile_number"
+                id="mobile_number"
+                type="number"
+                onChange={handleChange}
+                value="formData.mobile_number"
+                required
+            />
+            <label htmlFor="reservation_date"></label>
+            {/* 
+        
+        reservation_date: "",
+        reservation_time: "",
+        people: 0, */}
             <button type="submit" onClick={handleSubmit}>Submit</button>
             <button type="button" onClick={history.goBack}>Cancel</button>
         </form>
