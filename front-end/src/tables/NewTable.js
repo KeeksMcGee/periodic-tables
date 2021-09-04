@@ -28,10 +28,8 @@ export default function NewTable() {
         let foundError = null;
 
         if (formData.table_name === "" || formData.capacity === "") {
-            foundError = { message: "Pleser fill out all fields" };
-        }
-
-        else if (formData.table_name.length < 2) {
+            foundError = { message: "Please fill out all fields" };
+        } else if (formData.table_name.length < 2) {
             foundError = {message: "Table name must be at least two characters."}
         }
 
@@ -42,7 +40,7 @@ export default function NewTable() {
 
     return (
         <form>
-            <ErrorAlert error={error} />
+           <ErrorAlert error={error} />
 
             <label className="form-label" htmlFor="table_name">Table Name:</label>
             <input
