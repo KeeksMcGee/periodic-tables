@@ -7,6 +7,7 @@ import { today } from "../utils/date-time";
 import NewReservation from "../reservations/NewReservation"
 import useQuery from "../utils/useQuery"
 import NewTable from "../tables/NewTable";
+import SeatReservation from "../reservations/SeatReservation"
 
 /**
  * Defines all the routes for the application.
@@ -60,6 +61,12 @@ function Routes() {
       </Route>
       <Route exact={true} path="/tables/new">
         <NewTable/>
+      </Route>
+      <Route exact={true} path="/reservations/:reservation_id/seat">
+        <SeatReservation
+          reservations={reservations}
+          tables={tables}
+        />
         </Route>
       <Route path="/dashboard">
         {/*if date exists, pass in that date. Otherwise use today's date */}

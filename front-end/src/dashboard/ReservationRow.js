@@ -4,7 +4,8 @@ import React from "react";
 export default function Reservation({ reservation }) {
     /*returning 'null' inside of a react component basically means return nothing. 
     However, we always want o make sure we return null if we intend to return null*/
-    if (!reservation) return null;
+    //If the reservation is finished, we do not want it to be shwon on the dashboard
+    if (!reservation || reservation.status === "finished") return null;
 
     return (
         <tr>
@@ -16,13 +17,14 @@ export default function Reservation({ reservation }) {
             <td>{reservation.mobile_number}</td>
             <td>{reservation.reservation_time}</td>
             <td>{reservation.people}</td>
-            <td>{reservation.status}</td>
-            {/*lastly, the instructions call for a 'seat' button */}
-            <td>
+            <td data-reservation-id-status={reservation.resevation_id}>{reservation.status}</td>
+            {reservation.status === "booked" &&
+                <td>
                 <a href={`/reservations/${reservation.reservation_id}/seat`}>
-                    <button type="seat">Seat</button>
+                    <button type="button">Seat</button>
                 </a>
             </td>
+            }
         </tr>
-    )
+    );
 }
