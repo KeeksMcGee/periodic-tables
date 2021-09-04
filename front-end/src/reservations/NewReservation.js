@@ -36,32 +36,93 @@ export default function NewReservation() {
         //use the spread operator '...' so all previous values do not get overwritten
     }
 
-    //create a functon to see if the reservation is on Tuesday(when the restaurant is closed)
-    function validateDate() {
+        
+    function handleSubmit(event) {
+        event.preventDefault(); //the normal submit refreshes the entire page and I don't want that to happen
+
+        //create an empty array for the errors
+        const foundErrors = [];
+
+        /* If there are no errors, we don't want to push the user to a different page, but stay on this page
+        until the issue is resolved. A return statement in the validation function will be true when the date is valid
+        and false if it isn't we only push the user if there are no users with the reservation date
+        */
+        if (validateFields(foundErrors) && validateDate(foundErrors)) {
+            history.push(`/dashboard?date=${formData.reservation_date}`)
+        }
+
+        //The validation function will set its found errors into the state. If no errors, it'll return an empty array
+        setErrors(foundErrors);
+
+        //TODO: Edit this to post the request to the database
+        /* The submit button will redirect the user to the dashboard on a specific date.
+        the dashboard will have a URL query with the data. It looks like /dashboard?date=2035-12-30, so I'll replicate this here
+        the push function 'pushes' the user to whatever path you give.*/
+        
+    }
+
+    //A function to make sure all the reservation fields are filled out.
+    function validateFields(foundErrors) {
+        for (const field in formData) {
+            if (formData[field] === "") {
+                foundErrors.push({ message: `${field.split("_").join(" ")} can not be left blank.`})
+            }
+        }
+        if (formData.people <= 0) {
+            foundErrors.push({ message: "Party must be size of at least one person"})
+        }
+
+        if (foundErrors.length > 0) {
+            return false;
+        }
+        return true;
+    }
+
+
+    /*create a function to see if the reservation is on Tuesday(when the restaurant is closed) or if a a 
+        or if a reservation is made outside of restaurant operating hours
+    */
+    function validateDate(foundErrors) {
         /* I will use a built-in Date class to compare the dates 
         Previously, I stored the form's input values ian a react state called formData
         I can caccess that here, and use the Date constructor
         the string is already stored in the format YYYY-MM-DD, so nothing special needs to be done
+        EDIT: Changed to be a date string with the time included
         */
-        const reserveDate = new Date(formData.reservation_date);
+        const reserveDate = new Date(`${formData.reservation_date}T${formData.reservation_time}:00.000`);
+        //const reserveDate = new Date(formData.reservation_date);
         //We will need to compare the reservation date to today's date.
         //an empty construtor defaults to today's date
         const todaysDate = new Date();
 
-        //It is possible we can have multiple errors when a date is submitted, so initialze an array to hold those
-        const foundErrors = [];
-
-        //the Date class has many functions, one of which returns the date (0 is Monday, so 2 is Tuesday in this instance)
-        if (reserveDate.getDay() === 1) {
+        //the Date class has many functions, one of which returns the date (0 is Sunday, so 2 is Tuesday)
+        if (reserveDate.getDay() === 2) {
             //if it's Tuesday, push an error object to our foundErrors array
-            foundErrors.push({message: "Reservations cannot be made on a Tuesday (Restaurant is closed)"})
+            foundErrors.push({message: "Reservations cannot be made on a Tuesday: restaurant is closed"})
         }
+        /*  HOW DATES ARE COMPARED
+            Every date is stored as a number that represents the number of milliseconds that have elapsed since Jan. 1, 19**
+            so we know a date is in the past if there are less milliseconds in one date than the other
+         */
 
         if (reserveDate < todaysDate) {
             foundErrors.push({ message: "Reservations cannot be made in the past."})
         }
-        //The validation function will set its found errors into the state. If no errors, it'll return an empty array
-        setErrors(foundErrors);
+
+        //If it is before 1030a, reservations cannot be made
+        if (reserveDate.getHours() < 10 || (reserveDate.getHours() === 10 && reserveDate.getMinutes() < 30)) {
+            foundErrors.push({ message: "Reservation can not be made: restaurant is not open until 10:30AM."})
+        }
+
+        //If it is after 10:30p
+        else if (reserveDate.getHours() > 22 || (reserveDate.getHours === 22 && reserveDate.getMinutes() > 30)) {
+            foundErrors.push({ message: "Reservation can not be made: restaurant is closed after 10:30PM."})
+        }
+
+        //if it is after 9:30p
+        else if (reserveDate.getHours() > 21 || (reserveDate.getHours === 21 && reserveDate.getMinutes() > 30)) {
+            foundErrors.push({ message: "Reservation can not be made: reservation must be at least an hour before closing (10:30PM)"})
+        }
 
         //if any issues, the reservation date is not valid
         if (foundErrors.length > 0) {
@@ -69,25 +130,6 @@ export default function NewReservation() {
         }
         //If we get here, the reservation date is valid and handleSubmit will push the user forward
         return true;
-    }
-
-    
-    function handleSubmit(event) {
-        event.preventDefault(); //the normal submit refreshes the entire page and I don't want that to happen
-
-        //TODO: Edit this to post the request to the database
-        /* The submit button will redirect the user to the dashboard on a specific date.
-        the dashboard will have a URL query with the data. It looks like /dashboard?date=2035-12-30, so I'll replicate this here
-        the push function 'pushes' the user to whatever path you give.*/
-
-        /* If there are no errors, we don't want to push the user to a different page, but stay on this page
-        until the issue is resolved. A return statement in the validation function will be true when the date is valid
-        and false if it isn't we only push the user if there are no users with the reservation date
-        */
-        if (validateDate()) {
-            history.push(`/dashboard?date=${formData.reservation_date}`);
-        }
-        
     }
 
     const errorsJSX = () => {
