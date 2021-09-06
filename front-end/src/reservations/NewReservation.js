@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import ErrorAlert from "../layout/ErrorAlert";
 
 //FIRST STEPS:
@@ -9,12 +9,15 @@ import ErrorAlert from "../layout/ErrorAlert";
 3. Create a return statement
 */
 
-export default function NewReservation() {
+//to differentiate a new reservation from an existing one, I will pass an optional prop I'm editing
+export default function NewReservation({ edit, reservations }) {
 
     const history = useHistory();
     /* USE HISTORY:
     * history.go(-1) OR history.goBack() = to go back a page
     */
+    
+    const { reservation_id } = useParams();
     
     //Create an initial, default form that the user will see when they first visit the page
     const [formData, setFormData] = useState({

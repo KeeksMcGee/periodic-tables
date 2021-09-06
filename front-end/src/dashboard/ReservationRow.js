@@ -7,6 +7,15 @@ export default function Reservation({ reservation }) {
     //If the reservation is finished, we do not want it to be shwon on the dashboard
     if (!reservation || reservation.status === "finished") return null;
 
+    function handleCancel() {
+        if (window.confirm("Do you want to cancel this reservation? This can not be changed.")) {
+
+            //TODO: Add API call
+            window.location.reload();
+        }
+            
+    }
+
     return (
         <tr>
             {/*because the reservation id is a primary key, I can make this into a table header (and make the text bold)*/}
@@ -18,6 +27,20 @@ export default function Reservation({ reservation }) {
             <td>{reservation.reservation_time}</td>
             <td>{reservation.people}</td>
             <td data-reservation-id-status={reservation.resevation_id}>{reservation.status}</td>
+
+            <td>
+                <a href={`/reservations/${reservation.reservation_id}/edit`}>
+                    <button type="edit"> Edit</button>
+                </a>
+            </td>
+
+            <td>
+                {/*the cancel button requires a data-reservation-id-cancel attribute for the tests*/}
+                <button type="button" onClick={handleCancel} data-reservation-id-cancel={reservation.reservation_id} >
+                    Cancel
+                </button>
+            </td>
+
             {reservation.status === "booked" &&
                 <td>
                 <a href={`/reservations/${reservation.reservation_id}/seat`}>
