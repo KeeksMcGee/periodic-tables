@@ -68,11 +68,11 @@ export default function NewReservation({ edit, reservations }) {
     function validateFields(foundErrors) {
         for (const field in formData) {
             if (formData[field] === "") {
-                foundErrors.push({ message: `${field.split("_").join(" ")} can not be left blank.`})
+                foundErrors.push({ message: `${field.split("_").join(" ")} can not be left blank.` })
             }
         }
         if (formData.people <= 0) {
-            foundErrors.push({ message: "Party must be size of at least one person"})
+            foundErrors.push({ message: "Party must be size of at least one person" })
         }
 
         if (foundErrors.length > 0) {
@@ -101,7 +101,7 @@ export default function NewReservation({ edit, reservations }) {
         //the Date class has many functions, one of which returns the date (0 is Sunday, so 2 is Tuesday)
         if (reserveDate.getDay() === 2) {
             //if it's Tuesday, push an error object to our foundErrors array
-            foundErrors.push({message: "Reservations cannot be made on a Tuesday: restaurant is closed"})
+            foundErrors.push({ message: "Reservations cannot be made on a Tuesday: restaurant is closed" })
         }
         /*  HOW DATES ARE COMPARED
             Every date is stored as a number that represents the number of milliseconds that have elapsed since Jan. 1, 19**
@@ -109,22 +109,22 @@ export default function NewReservation({ edit, reservations }) {
          */
 
         if (reserveDate < todaysDate) {
-            foundErrors.push({ message: "Reservations cannot be made in the past."})
+            foundErrors.push({ message: "Reservations cannot be made in the past." })
         }
 
         //If it is before 1030a, reservations cannot be made
         if (reserveDate.getHours() < 10 || (reserveDate.getHours() === 10 && reserveDate.getMinutes() < 30)) {
-            foundErrors.push({ message: "Reservation can not be made: restaurant is not open until 10:30AM."})
+            foundErrors.push({ message: "Reservation can not be made: restaurant is not open until 10:30AM." })
         }
 
         //If it is after 10:30p
         else if (reserveDate.getHours() > 22 || (reserveDate.getHours === 22 && reserveDate.getMinutes() > 30)) {
-            foundErrors.push({ message: "Reservation can not be made: restaurant is closed after 10:30PM."})
+            foundErrors.push({ message: "Reservation can not be made: restaurant is closed after 10:30PM." })
         }
 
         //if it is after 9:30p
         else if (reserveDate.getHours() > 21 || (reserveDate.getHours === 21 && reserveDate.getMinutes() > 30)) {
-            foundErrors.push({ message: "Reservation can not be made: reservation must be at least an hour before closing (10:30PM)"})
+            foundErrors.push({ message: "Reservation can not be made: reservation must be at least an hour before closing (10:30PM)" })
         }
 
         //if any issues, the reservation date is not valid
@@ -133,6 +133,30 @@ export default function NewReservation({ edit, reservations }) {
         }
         //If we get here, the reservation date is valid and handleSubmit will push the user forward
         return true;
+    }
+
+    if (edit) {
+        //if either of these don't exist, we cannot continue
+        if (!reservations || !reservation_id) return null;
+
+        //let's try to find the corresponding reservation:
+        const foundReservation = reservations.find((reservation) =>
+            reservation.reservation_id === Number(reservation_id));
+        
+        //if it doesn't exist, or the reservation is booked, we can not edit
+        if (!foundReservation || foundReservation.status !== "booked") {
+            return <p>Only booked reservations can be edited.</p>
+        }
+
+        setFormData({
+            first_name: foundReservation.first_name,
+            last_name: foundReservation.last_name,
+            mobile_number: foundReservation.mobile_number,
+            reservation_date: foundReservation.reservation_date,
+            reservation_time: foundReservation.reservation_time,
+            people: foundReservation.people,
+            reservation_id: foundReservation.reservation_id,
+        });
     }
 
     const errorsJSX = () => {
