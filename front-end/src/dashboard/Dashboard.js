@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ErrorAlert from "../layout/ErrorAlert";
 import { previous, today, next } from "../utils/date-time";
 import { useHistory } from "react-router-dom";
 import ReservationRow from "./ReservationRow";
-import TableRow from "./TablesRow";
+import TableRow from "./TableRow";
 
 
 
@@ -15,16 +15,16 @@ import TableRow from "./TablesRow";
  */
 function Dashboard({ date, reservations, reservationsError, tables, tablesError, loadDashboard }) {
   const history = useHistory();
- 
+
    //display multiple error components if there are any:
    const reservationsJSX = () => {
      return reservations.map((reservation) => 
-     <ReservationRow key ={reservation.reservation_id} reservation={reservation}/>)
+       <ReservationRow key={reservation.reservation_id} reservation={reservation} loadDashboard={loadDashboard} />)
    }
 
    const tablesJSX = () => {
      return tables.map((table) =>
-       <TableRow key={tables.table_id} table={table} />);
+       <TableRow key={tables.table_id} table={table} loadDashboard={loadDashboard} />);
    }
 
   /*This return statement has a component that will show errors if something goes wrong (ErrorAlert), then it stringifies the response from the API 
@@ -36,7 +36,7 @@ function Dashboard({ date, reservations, reservationsError, tables, tablesError,
         <h4 className="mb-0">Reservations for {date}</h4>
       </div>
       <ErrorAlert error={reservationsError} />
-      <table class="table">
+      <table className="table">
         {/*thead for the table header, meant for the column label */}
         <thead>
           {/*tr for table row */}
@@ -60,7 +60,7 @@ function Dashboard({ date, reservations, reservationsError, tables, tablesError,
       {/* Using the same principles as the code above, we can make a section for the tables as well */}
       <h4 className="mb-0">Tables</h4>
       <ErrorAlert error={tablesError} />
-      <table class="table">
+      <table className="table">
         <thead>
           <tr>
             <th scope="col">ID</th>

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import ErrorAlert from "../layout/ErrorAlert";
+import { createReservation, editReservation, listReservations } from "../utils/api";
 
 //FIRST STEPS:
 /*
@@ -10,7 +11,7 @@ import ErrorAlert from "../layout/ErrorAlert";
 */
 
 //to differentiate a new reservation from an existing one, I will pass an optional prop I'm editing
-export default function NewReservation({ edit, reservations }) {
+export default function NewReservation({ loadDashboard, edit }) {
 
     const history = useHistory();
     /* USE HISTORY:
@@ -20,6 +21,9 @@ export default function NewReservation({ edit, reservations }) {
     const { reservation_id } = useParams();
     
     //Create an initial, default form that the user will see when they first visit the page
+    const[reservationsError, setReservationsError] = useState(null);
+    const [errors, setErrors] = useState([]);
+    const [apiError, setApiError] = useState(null);
     const [formData, setFormData] = useState({
         first_name: "",
         last_name: "",
@@ -30,28 +34,79 @@ export default function NewReservation({ edit, reservations }) {
         //For this, I underscored instead of camelcased to keep consistent with the name attributes that will be edited later
     });
 
-    const [errors, setErrors] = useState([]);
+    //Make an API call to get all reservations if we are editing, filling in the form
+    useEffect(() => {
+        if (edit) {
+            //if either of these don't exist, we cannot continue
+            if (!reservation_id) return null;
 
+            loadReservations()
+                .then((response) => response.find((reservation) =>
+                    reservation.reservation_id === Number(reservation_id)))
+                .then(fillFields);
+        }
+            
+            function fillFields(foundReservation) {
+                //if it doesn't exist, or the reservation is booked, we can not edit
+                if (!foundReservation || foundReservation.status !== "booked") {
+                    return <p>Only booked reservations can be edited.</p>
+                }
+                
+                const date = new Date(foundReservation.reservation_date)
+                const dateString = `${date.getFullYear()} - ${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + (date.getDate())).slice(-2)}`;
+    
+            setFormData({
+                first_name: foundReservation.first_name,
+                last_name: foundReservation.last_name,
+                mobile_number: foundReservation.mobile_number,
+                reservation_date: dateString,
+                reservation_time: foundReservation.reservation_time,
+                people: foundReservation.people,
+            });
+        }
+        async function loadReservations() {
+            const abortController = new AbortController();
+            return await listReservations(null, abortController.signal)
+                .catch(setReservationsError);
+        }
+    }, [edit, reservation_id]);
+
+
+    //Whenever a user makes a change to the form, update the state
     function handleChange({ target }) { //deconstruct the event argument
         //Will be using the useState hook to store whatever changes are made
         //this is why I use underscore, so when the target is accessed we get the input name in underscore
-        setFormData({ ...formData, [target.name]: target.value });
+        setFormData({ ...formData, [target.name]: target.name === "people" ? Number(target.value) : target.value });
         //use the spread operator '...' so all previous values do not get overwritten
     }
 
         
     function handleSubmit(event) {
         event.preventDefault(); //the normal submit refreshes the entire page and I don't want that to happen
+        const abortController = new AbortController();
 
         //create an empty array for the errors
         const foundErrors = [];
+        console.log(edit);
 
         /* If there are no errors, we don't want to push the user to a different page, but stay on this page
         until the issue is resolved. A return statement in the validation function will be true when the date is valid
         and false if it isn't we only push the user if there are no users with the reservation date
         */
         if (validateFields(foundErrors) && validateDate(foundErrors)) {
-            history.push(`/dashboard?date=${formData.reservation_date}`)
+            if (edit) {
+                editReservation(reservation_id, formData, abortController.signal)
+                    .then(loadDashboard)
+                    .then(() => history.push(`/dashboard?date=${formData.reservation_date}`))
+                    .catch(setApiError);
+            }
+            else {
+                createReservation(formData, abortController.signal)
+                    .then(loadDashboard)
+                    .then(() => history.push(`/dashboard?date=${formData.reservation_date}`))
+                    .catch(setApiError);
+            }
+            
         }
 
         //The validation function will set its found errors into the state. If no errors, it'll return an empty array
@@ -61,6 +116,7 @@ export default function NewReservation({ edit, reservations }) {
         /* The submit button will redirect the user to the dashboard on a specific date.
         the dashboard will have a URL query with the data. It looks like /dashboard?date=2035-12-30, so I'll replicate this here
         the push function 'pushes' the user to whatever path you give.*/
+        return () => abortController.abort();
         
     }
 
@@ -71,14 +127,8 @@ export default function NewReservation({ edit, reservations }) {
                 foundErrors.push({ message: `${field.split("_").join(" ")} can not be left blank.` })
             }
         }
-        if (formData.people <= 0) {
-            foundErrors.push({ message: "Party must be size of at least one person" })
-        }
-
-        if (foundErrors.length > 0) {
-            return false;
-        }
-        return true;
+        
+        return foundErrors.length === 0;
     }
 
 
@@ -127,36 +177,9 @@ export default function NewReservation({ edit, reservations }) {
             foundErrors.push({ message: "Reservation can not be made: reservation must be at least an hour before closing (10:30PM)" })
         }
 
-        //if any issues, the reservation date is not valid
-        if (foundErrors.length > 0) {
-            return false;
-        }
+       
         //If we get here, the reservation date is valid and handleSubmit will push the user forward
-        return true;
-    }
-
-    if (edit) {
-        //if either of these don't exist, we cannot continue
-        if (!reservations || !reservation_id) return null;
-
-        //let's try to find the corresponding reservation:
-        const foundReservation = reservations.find((reservation) =>
-            reservation.reservation_id === Number(reservation_id));
-        
-        //if it doesn't exist, or the reservation is booked, we can not edit
-        if (!foundReservation || foundReservation.status !== "booked") {
-            return <p>Only booked reservations can be edited.</p>
-        }
-
-        setFormData({
-            first_name: foundReservation.first_name,
-            last_name: foundReservation.last_name,
-            mobile_number: foundReservation.mobile_number,
-            reservation_date: foundReservation.reservation_date,
-            reservation_time: foundReservation.reservation_time,
-            people: foundReservation.people,
-            reservation_id: foundReservation.reservation_id,
-        });
+        return foundErrors.length === 0;
     }
 
     const errorsJSX = () => {

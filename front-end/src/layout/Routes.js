@@ -19,7 +19,7 @@ import Search from "../search/Search";
  */
 function Routes() {
   const query = useQuery();
-  const date = query.get("date");
+  const date = query.get("date") ? query.get("date") : today();
 
    /* Two states are bring stored. the 'reservations' state is esp important because it is holding the response
   from the API
@@ -41,10 +41,16 @@ function Routes() {
     const abortController = new AbortController();
     //no errors
     setReservationsError(null);
+    setTablesError(null);
     //time to make the API call. the first parameter {data} is the search param for the database, and also the value of 'date'.
-    listReservations({ date }, abortController.signal)
+    listReservations({ date: date }, abortController.signal)
       .then(setReservations)
       .catch(setReservationsError);
+    
+    listTables(abortController.signal)
+      .then((tables) => tables.sort((tableA, tableB) => tableA.table_id - tableB.table_id))
+      .then(setTables)
+      .catch(setTablesError);
     //where all other abortControllers will dump their asyn calls - race conditions fixed
     return () => abortController.abort();
    }
@@ -59,12 +65,14 @@ function Routes() {
       </Route>
       <Route exact={true} path="/reservations/new">
         <NewReservation
-          edit={true}
-          reservations={reservations}
+          loadDashboard={loadDashboard}
         />
       </Route>
-      <Route exact={true} path="/tables/new">
-        <NewTable/>
+      <Route exact={true} path="/reservations/:reservation_id/edit">
+        <NewReservation
+          loadDashboard={loadDashboard}
+          edit={true}
+        />
       </Route>
       <Route exact={true} path="/reservations/:reservation_id/seat">
         <SeatReservation
@@ -72,19 +80,25 @@ function Routes() {
           tables={tables}
         />
       </Route>
-      <Route path="/search">
-        <Search/>
-        </Route>
+      <Route exact={true} path="/tables/new">
+        <NewTable
+        loadDashboard={loadDashboard}
+        />
+      </Route>
       <Route path="/dashboard">
         {/*if date exists, pass in that date. Otherwise use today's date */}
         <Dashboard
-          date={date ? date : today()}
+          date={date}
           reservations={reservations}
           reservationsError={reservationsError}
           tables={tables}
           tablesError={tablesError}
+          loadDashboard={loadDashboard}
         />
       </Route>
+         <Route path="/search">
+        <Search/>
+        </Route>
       <Route>
         <NotFound />
       </Route>

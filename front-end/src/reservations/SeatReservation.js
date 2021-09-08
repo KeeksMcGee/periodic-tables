@@ -1,39 +1,63 @@
-import React, {useState} from "react";
+import React, {useState, useEffect } from "react";
 import { useHistory, useParams } from "react-router-dom";
+import ErrorAlert from "../layout/ErrorAlert";
+import { listReservations, seatTable } from "../utils/api";
 
 
-export default function SeatReservation({ reservations, tables }) {
+export default function SeatReservation({ tables, loadDashboard }) {
     const history = useHistory();
 
     //here are the tables we need to keep track of
-    const [tableId, setTableId] = useState(0);
+    const [table_id, setTableId] = useState(0);
+    const [reservations, setReservations] = useState([]);
+    const [reservationsError, setReservationsError] = useState(null);
     const [errors, setErrors] = useState([]);
+    const [apiError, setApiError] = useState(null);
 
     const reservation_id = useParams();
+
+    //At first render, make an API call to get all reservations
+    useEffect(() => {
+        const abortController = new AbortController();
+
+        setReservationsError(null);
+
+        listReservations(null, abortController.signal)
+            .then(setReservations)
+            .catch(setReservationsError);
+        
+        return () => abortController.abort();
+    }, []);
 
     //in case the props passed in do not exist
     if (!tables || !reservations) return null;
 
-    //change handler sets tableId state
+    //When a user makes a change to the form, update the state
     function handleChange({ target }) {
         setTableId(target.value);
     }
 
-    //submit handler
+    //When a user submits the form, validate and make the API call
     function handleSubmit(event) {
         event.preventDefault();
+        const abortController = new AbortController();
 
         if (validateSeat()) {
-            history.push(`/dashboard`);
+            setTableId(reservation_id, table_id, abortController.signal)
+                .then(loadDashboard)
+                .then(() => history.push(`/dashboard`))
+                .catch(setApiError);
         }
+        return () => abortController.abort();
     }
 
+    //Make sure the reservation can be seated at a particular table
     function validateSeat() {
         const foundErrors = [];
 
         //We need to be able to use the find method here to get hte actual table/reservations objects from their ids
-        const foundTable = tables.find((table) => table.table_id === tableId);
-        const foundReservation = reservations.find((reservation) => reservation.reservation_id === reservation_id);
+        const foundTable = tables.find((table) => table.table_id === Number(table_id));
+        const foundReservation = reservations.find((reservation) => reservation.reservation_id === Number(reservation_id));
 
         if (!foundTable) {
             foundErrors.push("The table you selected does not exist");
@@ -56,17 +80,28 @@ export default function SeatReservation({ reservations, tables }) {
     const tableOptionsJSX = () => {
         return tables.map((table) =>
             /*Make sure to include the values. The option text is required for the tests in the instructions */
-            <option values={table.table_id}>{table.name} - {table.capacity}</option>);
+            <option key={table.table_id} value={table.table_id}>{table.name} - {table.capacity}</option>);
     }
+
+    const errorsJSX = () => {
+        return errors.map((error, idx) => <ErrorAlert key={idx} error={error} />)
+    }
+
     return (
-        <form>
-            <label htmlFor="table_id">Choose table:</label>
+        <form className="form-select">
+            {errorsJSX()}
+            <ErrorAlert error={apiError}/>
+            <ErrorAlert error={reservationsError} />
+            
+            <label className="form-label" htmlFor="table_id">Choose table:</label>
             <select
+                className="form-control"
                 name="table_id"
                 id="table_id"
-                value={tableId}
+                value={table_id}
                 onChange={handleChange}
             >
+                <option value={0}>Choose a table:</option>
                 {tableOptionsJSX()}
             </select>
             <br/>
