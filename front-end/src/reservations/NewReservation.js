@@ -30,7 +30,7 @@ export default function NewReservation({ loadDashboard, edit }) {
         mobile_number: "",
         reservation_date: "",
         reservation_time: "",
-        people: 0,
+        people: "",
         //For this, I underscored instead of camelcased to keep consistent with the name attributes that will be edited later
     });
 
@@ -53,7 +53,7 @@ export default function NewReservation({ loadDashboard, edit }) {
                 }
                 
                 const date = new Date(foundReservation.reservation_date)
-                const dateString = `${date.getFullYear()} - ${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + (date.getDate())).slice(-2)}`;
+               const dateString = `${date.getFullYear()} - ${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + (date.getDate())).slice(-2)}`;
     
             setFormData({
                 first_name: foundReservation.first_name,
@@ -190,6 +190,8 @@ export default function NewReservation({ loadDashboard, edit }) {
         <form>
             {/*use the following as a template for your input fields */}
             {errorsJSX()}
+            <ErrorAlert error={apiError} />
+            <ErrorAlert error={reservationsError} />
             <label className="form-label" htmlFor="first_name">First Name:</label>
             <input
                 className="form-control"
@@ -254,8 +256,8 @@ export default function NewReservation({ loadDashboard, edit }) {
                 required
             />
             <br/>
-            <button className="btn btn-primary" type="submit" onClick={handleSubmit}>Submit</button>
-            <button className="btn btn-danger" type="button" onClick={history.goBack}>Cancel</button>
+            <button className="btn btn-primary m-1" type="submit" onClick={handleSubmit}>Submit</button>
+            <button className="btn btn-danger m-1" type="button" onClick={history.goBack}>Cancel</button>
         </form>
     );
 }

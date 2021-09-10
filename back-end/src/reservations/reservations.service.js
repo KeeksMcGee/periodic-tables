@@ -2,7 +2,7 @@ const knex = require("../db/connection");
 
 const tableName = "reservations";
 
-function list(date) {
+function list(date, mobile_number) {
     //if a date argument was passed in, we apply that search restriction
     if (date) {
         return knex(tableName)
@@ -14,7 +14,7 @@ function list(date) {
     if (mobile_number) {
         return knex(tableName)
             .select("*")
-        .where('mobile_number', 'like', `${mobile_number}%`)
+        .where('mobile_number', 'like', `${mobile_number}`)
     }
 
     //otherwise, jsut return all the reservations

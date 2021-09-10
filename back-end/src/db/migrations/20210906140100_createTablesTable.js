@@ -14,7 +14,7 @@ exports.up = function(knex) {
             .onDelete("SET NULL");
         
         table.timestamps(true, true);
-  })
+    });
 };
 
 exports.down = function(knex) {

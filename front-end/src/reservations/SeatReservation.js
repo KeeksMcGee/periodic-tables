@@ -43,7 +43,7 @@ export default function SeatReservation({ tables, loadDashboard }) {
         const abortController = new AbortController();
 
         if (validateSeat()) {
-            setTableId(reservation_id, table_id, abortController.signal)
+            seatTable(reservation_id, table_id, abortController.signal)
                 .then(loadDashboard)
                 .then(() => history.push(`/dashboard`))
                 .catch(setApiError);
@@ -80,7 +80,7 @@ export default function SeatReservation({ tables, loadDashboard }) {
     const tableOptionsJSX = () => {
         return tables.map((table) =>
             /*Make sure to include the values. The option text is required for the tests in the instructions */
-            <option key={table.table_id} value={table.table_id}>{table.name} - {table.capacity}</option>);
+            <option key={table.table_id} value={table.table_id}>{table.table_name} - {table.capacity}</option>);
     }
 
     const errorsJSX = () => {
@@ -101,12 +101,12 @@ export default function SeatReservation({ tables, loadDashboard }) {
                 value={table_id}
                 onChange={handleChange}
             >
-                <option value={0}>Choose a table:</option>
+                <option value={0}>Choose a table</option>
                 {tableOptionsJSX()}
             </select>
             <br/>
-            <button className="btn btn-primary" type="submit" onClick={handleSubmit}>Submit</button>
-            <button className="btn btn-danger" type="button" onClick={history.goBack}>Cancel</button>
+            <button className="btn btn-primary m-1" type="submit" onClick={handleSubmit}>Submit</button>
+            <button className="btn btn-danger m-1" type="button" onClick={history.goBack}>Cancel</button>
        </form>
     )
 }

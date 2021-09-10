@@ -43,7 +43,7 @@ function validateBody(req, res, next) {
 
 //Create a table
 async function create(req, res) {
-    if (!req.body.data.reservation_id) {
+    if (req.body.data.reservation_id) {
         req.body.data.status = "occupied";
         await service.updateReservation(req.body.data.reservation_id, "seated");
     }
@@ -75,7 +75,7 @@ async function validateReservationId(req, res, next) {
 //Validates a seat request to make sure it is allowed
 async function validateSeat(req, res, next) {
     if (res.locals.table.status === "occupied") {
-        return({status: 400, message: "The table you selected is scurrently ocuppied" })
+        return({status: 400, message: "The table you selected is currently ocuppied" })
     }
 
     if (res.locals.reservation.status === "seated") {
@@ -83,8 +83,9 @@ async function validateSeat(req, res, next) {
     }
 
     if (res.locals.table.capacity < res.locals.reservation.people) {
-        return next({ status: 400, message: `The table you selected does not have enough capacity to sit ${res.locals.reservation.people} people`})
+        return next({ status: 400, message: `The table you selected does not have enough capacity to seat ${res.locals.reservation.people} people`})
     }
+    next();
 }
 
 //Seat a table

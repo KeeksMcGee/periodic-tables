@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { listReservations } from "../utils/api";
 import ReservationRow from "../dashboard/ReservationRow"
+import ErrorAlert from "../layout/ErrorAlert";
 
 export default function Search() {
     //this state stores the search input
@@ -45,10 +46,11 @@ export default function Search() {
     return (
         <div>
             <form>
-                <br/>
-                <label htmlFor="mobile_number">Enter a customer's phone number:&nbsp;</label>
+                <br />
+                <ErrorAlert error={error} />
+                <label className="form-label" htmlFor="mobile_number">Enter a customer's phone number:</label>
                 <input
-                    
+                    className="form-control"
                     name="mobile_number"
                     id="mobile_number"
                     type="tel"
@@ -56,16 +58,17 @@ export default function Search() {
                     value={mobileNumber}
                     required
                 />
-                <button type="submit" onClick={handleSubmit}>Find</button>
+                <button className="btn btn-primary m-1" type="submit" onClick={handleSubmit}>Find</button>
             </form>
 
-            <table class="table">
-                <thead class="thead-light">
+            <table className="table table-hover m-1">
+                <thead className="thead-light">
                     <tr>
                         <th scope="col">ID</th>
                         <th scope="col">First Name</th>
                         <th scope="col">Last Name</th>
                         <th scope="col">Mobile Number</th>
+                        <th scope="col">Date</th>
                         <th scope="col">Time</th>
                         <th scope="col">People</th>
                         <th scope="col">Status</th>

@@ -4,8 +4,6 @@ import { finishTable } from "../utils/api";
 export default function TableRow({ table, loadDashboard }) {
     if (!table) return null;
 
-    const abortController = new AbortController();
-   
 
     /*window.confirm will show a dialogue that will give an "OK" button or a "Cancel" button.
     It will return true if the OK button is pressed, false for cancel
@@ -13,7 +11,8 @@ export default function TableRow({ table, loadDashboard }) {
     //Call when the user wants to finish a table that is currently seated
     function handleFinish() {
         if (window.confirm("Is this table ready to seat new guests? This can not be undone")) {
-            //TODO: Delete the request here
+         
+            const abortController = new AbortController();
             finishTable(table.table_id, abortController.signal)
                 .then(loadDashboard);
             

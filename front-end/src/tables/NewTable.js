@@ -78,8 +78,8 @@ export default function NewTable({ loadDashboard }) {
                 required
             />
             <br />
-            <button className="btn btn-primary" type="submit" onClick={handleSubmit}>Submit</button>
-            <button className="btn btn-danger" type="button" onClick={history.goBack}>Cancel</button>
+            <button className="btn btn-primary m-1" type="submit" onClick={handleSubmit}>Submit</button>
+            <button className="btn btn-danger m-1" type="button" onClick={history.goBack}>Cancel</button>
             
         </form>
     );

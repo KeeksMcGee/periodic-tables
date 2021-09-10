@@ -23,21 +23,8 @@ async function validateData(req, res, next) {
   next();
 }
 
-
-async function create(req, res) {
-  //Added because every new reservation will automatically have a status of "booked"
-  //we can edit the body object here, then pass it into hte response
-  req.body.data.status = "booked";
-
-  const response = await service.create(req.body.data);
-
-  /*when knex creates things, it will return something in the form of an array
-  we only want the first object, so I access the 0th index here */
-  res.status(201).json({ data: response[0] });
-}
-
 //Validates the body object to make sure all required information is correct
-function validateBody(req, res, next) {
+async function validateBody(req, res, next) {
 
   const requiredFields = ["first_name", "last_name", "mobile_number", "reservation_date", "reservation_time", "people"];
 
@@ -66,8 +53,22 @@ function validateBody(req, res, next) {
   next();
 }
 
+async function create(req, res) {
+  //Added because every new reservation will automatically have a status of "booked"
+  //we can edit the body object here, then pass it into hte response
+  req.body.data.status = "booked";
+
+  const response = await service.create(req.body.data);
+
+  /*when knex creates things, it will return something in the form of an array
+  we only want the first object, so I access the 0th index here */
+  res.status(201).json({ data: response[0] });
+}
+
+
+
 //Validates the reservation date and time t oensure it fits with hte restaurant's schedule
-function validateDate(req, res, next) {
+async function validateDate(req, res, next) {
   const reserveDate = new Date(`${req.body.data.reservation_date}T${req.body.data.reservation_time}:00.000`);
   const todaysDate = new Date();
 
@@ -118,18 +119,20 @@ async function validateReservationId(req, res, next) {
 
 //Validates the body's object to make sure all required information is correct for updating a reservation's status
 async function validateUpdateBody(req, res, next) {
-  if (!req.body.data.status) {
-    return next({ status: 400, message: "Body must include a status field" });
-  }
+	if(!req.body.data.status) {
+		return next({ status: 400, message: "Body must include a status field" });
+	}
 
-  if (req.body.data.status !== "booked" && req.body.data.status !== "seated" &&
-  req.body.data.status !== "finished" && req.body.data.status !=="cancelled") {
-    return next({ status: 400, message: `'Status' field can not be ${req.body.data.status}`})
-  }
+	if(req.body.data.status !== "booked" && req.body.data.status !== "seated" &&
+		req.body.data.status !== "finished" && req.body.data.status !== "cancelled") {
+		return next({ status: 400, message: `'status' field cannot be ${req.body.data.status}` });
+	}
 
-  if (res.locals.reservation.status === "finished") {
-    return next({ status: 400, message: "A finished reservation can not be updated"})
-  }
+	if(res.locals.reservation.status === "finished") {
+		return next({ status: 400, message: `A finished reservation cannot be updated` });
+	}
+
+	next();
 }
 
 //Updates a reservations's status
@@ -140,9 +143,9 @@ async function update(req, res) {
 
 //Edits the data of a reservation
 async function edit(req, res) {
-  const response = await service.edit(res.locals.reservation.reservation_id, req.body.data);
+	const response = await service.edit(res.locals.reservation.reservation_id, req.body.data);
 
-  res.status(200).json({ data: response[0]})
+	res.status(200).json({ data: response[0] });
 }
 
 //Respond with a particular reservation

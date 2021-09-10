@@ -25,20 +25,45 @@ function Dashboard({ date, reservations, reservationsError, tables, tablesError,
    const tablesJSX = () => {
      return tables.map((table) =>
        <TableRow key={tables.table_id} table={table} loadDashboard={loadDashboard} />);
-   }
+  }
 
-  /*This return statement has a component that will show errors if something goes wrong (ErrorAlert), then it stringifies the response from the API 
-  Right now, the stringify will still output some js-looking strings. Need to find another way to later format this nicely for the user*/
-  return (
-    <main>
-      <h1>Dashboard</h1>
-      <div className="d-md-flex mb-3">
-        <h4 className="mb-0">Reservations for {date}</h4>
-      </div>
+  function handleClick({ target }) {
+		let newDate;
+		let useDate;
+
+		if(!date) {
+			useDate = today();
+		}
+		else {
+			useDate = date;
+		}
+
+		if(target.name === "previous") {
+			newDate = previous(useDate);
+		}
+		else if(target.name === "next") {
+			newDate = next(useDate);
+		}
+		else {
+			newDate = today();
+		}
+
+		history.push(`/dashboard?date=${newDate}`);
+	}
+
+	return (
+		<main>
+		<h1>Dashboard</h1>
+
+		<h4 className="mb-0">Reservations for {date}</h4>
+
+				<button className="btn btn-secondary m-1" type="button" name="previous" onClick={handleClick}>Previous</button>
+				<button className="btn btn-primary m-1" type="button" name="today" onClick={handleClick}>Today</button>
+				<button className="btn btn-secondary m-1" type="button" name="next" onClick={handleClick}>Next</button>
       <ErrorAlert error={reservationsError} />
-      <table className="table">
+      <table className="table table-hover m-1">
         {/*thead for the table header, meant for the column label */}
-        <thead>
+        <thead className="thead-light">
           {/*tr for table row */}
           <tr>
             {/*th for table heading */}
@@ -46,10 +71,13 @@ function Dashboard({ date, reservations, reservationsError, tables, tablesError,
             <th scope="col">First Name</th>
             <th scope="col">Last Name</th>
             <th scope="col">Mobile Number</th>
+            <th scope="col">Date</th>
             <th scope="col">Time</th>
             <th scope="col">People</th>
             <th scope="col">Status</th>
-            <th scope="col">Table Name</th>
+            <th scope="col">Edit</th>
+            <th scope="col">Cancel</th>
+            <th scope="col">Seat</th>
           </tr>
         </thead>
         {/*tbody is the table body */}
@@ -57,25 +85,27 @@ function Dashboard({ date, reservations, reservationsError, tables, tablesError,
         {reservationsJSX()}
         </tbody>
       </table>
+      <br/>
+      <br/>
       {/* Using the same principles as the code above, we can make a section for the tables as well */}
       <h4 className="mb-0">Tables</h4>
       <ErrorAlert error={tablesError} />
-      <table className="table">
-        <thead>
+      <table className="table table-hover m-1">
+        <thead className="thead-light">
           <tr>
             <th scope="col">ID</th>
             <th scope="col">Table Name</th>
             <th scope="col">Capacity</th>
             <th scope="col">Status</th>
+            <th scope="col">Reservation ID</th>
+            <th scope="col">Finish</th>
           </tr>
         </thead>
         <tbody>
           {tablesJSX()}
         </tbody>
       </table>
-      <button type="button" onClick={() => history.push(`/dashboard?date=${previous(date)}`)}>Previous</button>
-      <button type="button" onClick={() => history.push(`/dashboard?date=${today()}`)}>Today</button>
-      <button type="button" onClick={() => history.push(`/dashboard?date=${next(date)}`)}>Next</button>
+   
     </main>
   );
 }
