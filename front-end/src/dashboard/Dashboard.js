@@ -1,33 +1,30 @@
 import React from "react";
-import ErrorAlert from "../layout/ErrorAlert";
-import { previous, today, next } from "../utils/date-time";
 import { useHistory } from "react-router-dom";
+import { previous, next, today } from "../utils/date-time";
+import ErrorAlert from "../layout/ErrorAlert";
 import ReservationRow from "./ReservationRow";
 import TableRow from "./TableRow";
 
-
-
 /**
  * Defines the dashboard page.
- * @param date
- *  the date for which the user wants to view reservations.
- * @returns {JSX.Element}
  */
 function Dashboard({ date, reservations, reservationsError, tables, tablesError, loadDashboard }) {
-  const history = useHistory();
+	const history = useHistory();
 
-   //display multiple error components if there are any:
-   const reservationsJSX = () => {
-     return reservations.map((reservation) => 
-       <ReservationRow key={reservation.reservation_id} reservation={reservation} loadDashboard={loadDashboard} />)
-   }
+	const reservationsJSX = () => {
+		return reservations.map((reservation) => 
+			<ReservationRow key={reservation.reservation_id} reservation={reservation} loadDashboard={loadDashboard} />);
+	};
 
-   const tablesJSX = () => {
-     return tables.map((table) =>
-       <TableRow key={tables.table_id} table={table} loadDashboard={loadDashboard} />);
-  }
+	const tablesJSX = () => {
+		return tables.map((table) => 
+			<TableRow key={table.table_id} table={table} loadDashboard={loadDashboard} />);
+	};
 
-  function handleClick({ target }) {
+	/**
+	 * Allows the user to go forward/backward days on the calendar.
+	 */
+	function handleClick({ target }) {
 		let newDate;
 		let useDate;
 
@@ -60,54 +57,56 @@ function Dashboard({ date, reservations, reservationsError, tables, tablesError,
 				<button className="btn btn-secondary m-1" type="button" name="previous" onClick={handleClick}>Previous</button>
 				<button className="btn btn-primary m-1" type="button" name="today" onClick={handleClick}>Today</button>
 				<button className="btn btn-secondary m-1" type="button" name="next" onClick={handleClick}>Next</button>
-      <ErrorAlert error={reservationsError} />
-      <table className="table table-hover m-1">
-        {/*thead for the table header, meant for the column label */}
-        <thead className="thead-light">
-          {/*tr for table row */}
-          <tr>
-            {/*th for table heading */}
-            <th scope="col">ID</th>
-            <th scope="col">First Name</th>
-            <th scope="col">Last Name</th>
-            <th scope="col">Mobile Number</th>
-            <th scope="col">Date</th>
-            <th scope="col">Time</th>
-            <th scope="col">People</th>
-            <th scope="col">Status</th>
-            <th scope="col">Edit</th>
-            <th scope="col">Cancel</th>
-            <th scope="col">Seat</th>
-          </tr>
-        </thead>
-        {/*tbody is the table body */}
-        <tbody>
-        {reservationsJSX()}
-        </tbody>
-      </table>
-      <br/>
-      <br/>
-      {/* Using the same principles as the code above, we can make a section for the tables as well */}
-      <h4 className="mb-0">Tables</h4>
-      <ErrorAlert error={tablesError} />
-      <table className="table table-hover m-1">
-        <thead className="thead-light">
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Table Name</th>
-            <th scope="col">Capacity</th>
-            <th scope="col">Status</th>
-            <th scope="col">Reservation ID</th>
-            <th scope="col">Finish</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tablesJSX()}
-        </tbody>
-      </table>
-   
-    </main>
-  );
+				
+				<ErrorAlert error={reservationsError} />
+
+				<table className="table table-hover m-1">
+					<thead className="thead-light">
+						<tr>
+							<th scope="col">ID</th>
+							<th scope="col">First Name</th>
+							<th scope="col">Last Name</th>
+							<th scope="col">Mobile Number</th>
+							<th scope="col">Date</th>
+							<th scope="col">Time</th>
+							<th scope="col">People</th>
+							<th scope="col">Status</th>
+							<th scope="col">Edit</th>
+							<th scope="col">Cancel</th>
+							<th scope="col">Seat</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						{reservationsJSX()}
+					</tbody>
+				</table>
+		
+				<br />
+				<br />
+
+				<h4 className="mb-0">Tables</h4>
+
+				<ErrorAlert error={tablesError} />
+
+				<table className="table table-hover m-1">
+					<thead className="thead-light">
+						<tr>
+							<th scope="col">Table ID</th>
+							<th scope="col">Table Name</th>
+							<th scope="col">Capacity</th>
+							<th scope="col">Status</th>
+							<th scope="col">Reservation ID</th>
+							<th scope="col">Finish</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						{tablesJSX()}
+					</tbody>
+				</table>
+		</main>
+  	);
 }
 
 export default Dashboard;

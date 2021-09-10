@@ -53,19 +53,6 @@ async function validateBody(req, res, next) {
   next();
 }
 
-async function create(req, res) {
-  //Added because every new reservation will automatically have a status of "booked"
-  //we can edit the body object here, then pass it into hte response
-  req.body.data.status = "booked";
-
-  const response = await service.create(req.body.data);
-
-  /*when knex creates things, it will return something in the form of an array
-  we only want the first object, so I access the 0th index here */
-  res.status(201).json({ data: response[0] });
-}
-
-
 
 //Validates the reservation date and time t oensure it fits with hte restaurant's schedule
 async function validateDate(req, res, next) {
@@ -96,11 +83,15 @@ async function validateDate(req, res, next) {
 }
 
 async function create(req, res) {
-  req.body.data.status = "booked"
+  //Added because every new reservation will automatically have a status of "booked"
+  //we can edit the body object here, then pass it into hte response
+  req.body.data.status = "booked";
 
   const response = await service.create(req.body.data);
 
-  res.status(201).json({ data: response[0] })
+  /*when knex creates things, it will return something in the form of an array
+  we only want the first object, so I access the 0th index here */
+  res.status(201).json({ data: response[0] });
 }
 
 //Validates, finds, and stores reservation based of its ID

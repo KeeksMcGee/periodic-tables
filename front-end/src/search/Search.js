@@ -38,8 +38,8 @@ export default function Search() {
         return reservations.length > 0 ?
             //we can use the same ReservationRow component used in the dashboard
             reservations.map((reservation) => 
-                <ReservationRow key={reservation.reservation_id} reservation={reservation} />) :
-            <p>No Reservations Found</p>
+				<ReservationRow key={reservation.reservation_id} reservation={reservation} />) :
+			<tr><td>No reservations found</td></tr>;
     }
 
 
