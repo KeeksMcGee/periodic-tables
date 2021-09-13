@@ -74,17 +74,18 @@ async function validateReservationId(req, res, next) {
 
 //Validates a seat request to make sure it is allowed
 async function validateSeat(req, res, next) {
-    if (res.locals.table.status === "occupied") {
-        return({status: 400, message: "The table you selected is currently ocuppied" })
+    if(res.locals.table.status === "occupied") {
+        return next({ status: 400, message: "the table you selected is currently occupied" });
     }
 
-    if (res.locals.reservation.status === "seated") {
-        return next({ status: 400, message: "The reservation you selected is already seated"})
+	if(res.locals.reservation.status === "seated") {
+		return next({ status: 400, message: "the reservation you selected is already seated" });
+	}
+
+    if(res.locals.table.capacity < res.locals.reservation.people) {
+        return next({ status: 400, message: `the table you selected does not have enough capacity to seat ${res.locals.reservation.people} people` });
     }
 
-    if (res.locals.table.capacity < res.locals.reservation.people) {
-        return next({ status: 400, message: `The table you selected does not have enough capacity to seat ${res.locals.reservation.people} people`})
-    }
     next();
 }
 

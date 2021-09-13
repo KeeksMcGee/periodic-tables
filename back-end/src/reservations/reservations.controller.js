@@ -1,117 +1,130 @@
+const service = require("./reservations.service");
 const asyncErrorBoundary = require("../errors/asyncErrorBoundary");
-const service = require("./reservations.service")
 
 /**
- * List handler for reservation resources
+ * List handler for reservation resources.
  */
 async function list(req, res) {
-  const date = req.query.date;
-  const mobile_number = req.query.mobile_number;
+	const date = req.query.date;
+	const mobile_number = req.query.mobile_number;
 
-  const reservations = await service.list(date, mobile_number);
+	const reservations = await service.list(date, mobile_number);
 
-  const response = reservations.filter((reservation) => reservation.status !== "finished")
+	const response = reservations.filter((reservation) => reservation.status !== "finished");
 
-  res.json({ data: response });
+	res.json({ data: response });
 }
 
-//Make sure the data object exists
+/**
+ * Makes sure data object exists.
+ */
 async function validateData(req, res, next) {
-  if(!req.body.data) {
-    return next({ status: 400, message: "Body must include a data object" });
-  }
-  next();
+	if(!req.body.data) {
+		return next({ status: 400, message: "Body must include a data object" });
+	}
+
+	next();
 }
 
-//Validates the body object to make sure all required information is correct
+/**
+ * Validates the body object to make sure all required information is correct.
+ */
 async function validateBody(req, res, next) {
+	const requiredFields = ["first_name", "last_name", "mobile_number", "reservation_date", "reservation_time", "people"];
 
-  const requiredFields = ["first_name", "last_name", "mobile_number", "reservation_date", "reservation_time", "people"];
+	for(const field of requiredFields) {
+		if(!req.body.data.hasOwnProperty(field) || req.body.data[field] === "") {
+			return next({ status: 400, message: `Field required: '${field}'` });
+		}
+	}
 
-  for (const field of requiredFields) {
-    if (!req.body.data.hasOwnProperty(field) || req.body.data[field] === "") {
-      return next({ status: 400, message: `Field required: '${field}'` });
-    }
+	if(Number.isNaN(Date.parse(`${req.body.data.reservation_date} ${req.body.data.reservation_time}`))) {
+		return next({ status: 400, message: "'reservation_date' or 'reservation_time' field is in an incorrect format" });
+	}
+
+	if(typeof req.body.data.people !== "number") {
+		return next({ status: 400, message: "'people' field must be a number" });
+	}
+
+	if(req.body.data.people < 1) {
+		return next({ status: 400, message: "'people' field must be at least 1" });
+	}
+
+	if(req.body.data.status && req.body.data.status !== "booked") {
+		return next({ status: 400, message: `'status' field cannot be ${req.body.data.status}` });
+  }
+  
+  if (req.body.data.status === "occupied") {
+    return next({ status: 400, message:"That table is occupied"})
   }
 
-  if (Number.isNaN(Date.parse(`${req.body.data.reservation_date} ${req.body.data.reservation_time}`))) {
-    return next({ status: 400, messag: "'reservation_data' or 'reservation_time' field is in an incorrect format"})
-  }
-
-  if (typeof req.body.data.people !== "number") {
-    return next({ status: 400, message: "'people' field must be a number" });
-  }
-
-  if (req.body.data.people < 1) {
-    return next({ status: 400, message: "'people' field must be at least 1"})
-  }
-
-  if (req.body.data.status && req.body.data.status !== "booked") {
-    return next({ status: 400, message: `'status' field can not be ${req.body.data.status}` });
-  }
-
-  next();
+	next();
 }
 
-
-//Validates the reservation date and time t oensure it fits with hte restaurant's schedule
+/**
+ * Validates the reservation date and time to ensure it fits with the restauraunt's schedule.
+ */
 async function validateDate(req, res, next) {
-  const reserveDate = new Date(`${req.body.data.reservation_date}T${req.body.data.reservation_time}:00.000`);
-  const todaysDate = new Date();
+	const reserveDate = new Date(`${req.body.data.reservation_date}T${req.body.data.reservation_time}:00.000`);
+	const todaysDate = new Date();
 
-  if (reserveDate.getDay() === 2) {
-    return next({ status: 400, message: "'reservation_date' field: restaurant is closed on Tuesdays." });
-  }
+	if(reserveDate.getDay() === 2) {  
+		return next({ status: 400, message: "'reservation_date' field: restauraunt is closed on tuesday" });
+	}
 
-  if (reserveDate < todaysDate) {
-    return next({ status: 400, message: "'reservation_date' and 'reservation_time' field must be in the future." });
-  }
+	if(reserveDate < todaysDate) {
+		return next({ status: 400, message: "'reservation_date' and 'reservation_time' field must be in the future" });
+	}
 
-  if (reserveDate.getHours() < 10 || (reserveDate.getHours() === 10 && reserveDate.getMinutes() < 30)) {
-    return next({ status: 400, message: "'reservation_time' field: restaurant is not open until 10:30AM" });
-  }
+	if(reserveDate.getHours() < 10 || (reserveDate.getHours() === 10 && reserveDate.getMinutes() < 30)) {
+		return next({ status: 400, message: "'reservation_time' field: restaurant is not open until 10:30AM" });
+	}
 
-  if (reserveDate.getHours() > 22 || (reserveDate.getHours() === 22 && reserveData.getMinutes() >= 30)) {
-    return next({ status: 400, message: "'reservation_time' field: restaurant is closed after 10:30PM" });
-  }
+	if(reserveDate.getHours() > 22 || (reserveDate.getHours() === 22 && reserveDate.getMinutes() >= 30)) {
+		return next({ status: 400, message: "'reservation_time' field: restaurant is closed after 10:30PM" });
+	}
 
-  if (reserveDate.getHours() > 21 || (reserveDate.getHours() === 21 && reserveDate.getMinutes() > 30)) {
-    return next({ status: 400, message: "'reservation_time' field: reservation must be made at least an hour before closing (10:30PM)"})
-  }
+	if(reserveDate.getHours() > 21 || (reserveDate.getHours() === 21 && reserveDate.getMinutes() > 30)) {
+		return next({ status: 400, message: "'reservation_time' field: reservation must be made at least an hour before closing (10:30PM)" })
+	}
 
-  next();
+	next();
 }
 
+/**
+ * Create a reservation.
+ */
 async function create(req, res) {
-  //Added because every new reservation will automatically have a status of "booked"
-  //we can edit the body object here, then pass it into hte response
-  req.body.data.status = "booked";
+	req.body.data.status = "booked";
 
-  const response = await service.create(req.body.data);
+	const response = await service.create(req.body.data);
 
-  /*when knex creates things, it will return something in the form of an array
-  we only want the first object, so I access the 0th index here */
-  res.status(201).json({ data: response[0] });
+	res.status(201).json({ data: response[0] });
 }
 
-//Validates, finds, and stores reservation based of its ID
+/**
+ * Validates, finds, and stores a reservation based off of its ID.
+ */
 async function validateReservationId(req, res, next) {
-  const { reservation_id } = req.params;
-  const reservation = await service.read(Number(reservation_id));
+    const { reservation_id } = req.params;
+    const reservation = await service.read(Number(reservation_id));
 
-  if (!reservation) {
-    return next({ status: 400, message: `Reservation id ${reservation_id} does not exist` });
-  }
+    if(!reservation) {
+        return next({ status: 404, message: `reservation id ${reservation_id} does not exist` });
+    }
 
-  res.locals.reservation = reservation;
+    res.locals.reservation = reservation;
 
-  next();
+    next();
 }
 
-//Validates the body's object to make sure all required information is correct for updating a reservation's status
+/**
+ * Validates the body object to make sure all required information is correct for updating
+ * a resevation's status.
+ */
 async function validateUpdateBody(req, res, next) {
 	if(!req.body.data.status) {
-		return next({ status: 400, message: "Body must include a status field" });
+		return next({ status: 400, message: "body must include a status field" });
 	}
 
 	if(req.body.data.status !== "booked" && req.body.data.status !== "seated" &&
@@ -120,28 +133,35 @@ async function validateUpdateBody(req, res, next) {
 	}
 
 	if(res.locals.reservation.status === "finished") {
-		return next({ status: 400, message: `A finished reservation cannot be updated` });
+		return next({ status: 400, message: `a finished reservation cannot be updated` });
 	}
 
 	next();
 }
 
-//Updates a reservations's status
+/**
+ * Update a reservation's status.
+ */
 async function update(req, res) {
-  await service.update(res.locals.reservation.reservation_id, req.body.data.status);
-  res.status(200).json({ data: {status: req.body.data.status}})
+	await service.update(res.locals.reservation.reservation_id, req.body.data.status);
+
+	res.status(200).json({ data: { status: req.body.data.status } });
 }
 
-//Edits the data of a reservation
+/**
+ * Edit the data of a reservation.
+ */
 async function edit(req, res) {
 	const response = await service.edit(res.locals.reservation.reservation_id, req.body.data);
 
 	res.status(200).json({ data: response[0] });
 }
 
-//Respond with a particular reservation
+/**
+ * Respond with a particular reservation.
+ */
 async function read(req, res) {
-  res.status(200).json({ data: res.locals.reservation})
+	res.status(200).json({ data: res.locals.reservation });
 }
 
 module.exports = {
